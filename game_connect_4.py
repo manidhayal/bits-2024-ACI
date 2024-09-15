@@ -118,8 +118,8 @@ def score_position(grid, piece):
 
     return score
 
-# Minimax algorithm with pruning
-def minimax(grid, depth, alpha, beta, maximizing_player):
+# Alpha Beta algorithm with pruning
+def alpha_beta(grid, depth, alpha, beta, maximizing_player):
     valid_columns = [c for c in range(COLS) if is_valid_column(grid, c)]
     is_terminal = winning_move(grid, PLAYER) or winning_move(grid, AI) or is_draw(grid)
 
@@ -141,7 +141,7 @@ def minimax(grid, depth, alpha, beta, maximizing_player):
             row = get_next_open_row(grid, col)
             temp_grid = [row[:] for row in grid]
             drop_piece(temp_grid, row, col, AI)
-            new_score = minimax(temp_grid, depth - 1, alpha, beta, False)[1]
+            new_score = alpha_beta(temp_grid, depth - 1, alpha, beta, False)[1]
             if new_score > value:
                 value = new_score
                 column = col
@@ -157,13 +157,55 @@ def minimax(grid, depth, alpha, beta, maximizing_player):
             row = get_next_open_row(grid, col)
             temp_grid = [row[:] for row in grid]
             drop_piece(temp_grid, row, col, PLAYER)
-            new_score = minimax(temp_grid, depth - 1, alpha, beta, True)[1]
+            new_score = alpha_beta(temp_grid, depth - 1, alpha, beta, True)[1]
             if new_score < value:
                 value = new_score
                 column = col
             beta = min(beta, value)
             if alpha >= beta:
                 break
+        return column, value
+
+#minmax algorithm
+def minimax(grid, depth, maximizing_player):
+    valid_columns = [c for c in range(COLS) if is_valid_column(grid, c)]
+    is_terminal = winning_move(grid, PLAYER) or winning_move(grid, AI) or is_draw(grid)
+
+    if depth == 0 or is_terminal:
+        if is_terminal:
+            if winning_move(grid, AI):
+                return (None, 100000000000000)
+            elif winning_move(grid, PLAYER):
+                return (None, -10000000000000)
+            else:
+                return (None, 0)
+        else:
+            return (None, score_position(grid, AI))
+
+    if maximizing_player:
+        value = -math.inf
+        column = random.choice(valid_columns)
+        for col in valid_columns:
+            row = get_next_open_row(grid, col)
+            temp_grid = [row[:] for row in grid]
+            drop_piece(temp_grid, row, col, AI)
+            new_score = minimax(temp_grid, depth - 1, False)[1]
+            if new_score > value:
+                value = new_score
+                column = col
+        return column, value
+
+    else:
+        value = math.inf
+        column = random.choice(valid_columns)
+        for col in valid_columns:
+            row = get_next_open_row(grid, col)
+            temp_grid = [row[:] for row in grid]
+            drop_piece(temp_grid, row, col, PLAYER)
+            new_score = minimax(temp_grid, depth - 1, True)[1]
+            if new_score < value:
+                value = new_score
+                column = col
         return column, value
 
 # Play Connect Four Game
@@ -204,7 +246,8 @@ def play_game():
             turn = AI
 
         else:
-            col, minimax_score = minimax(grid, DEPTH, -math.inf, math.inf, True)
+            # col, minimax_score = alpha_beta(grid, DEPTH, -math.inf, math.inf, True)
+            col, minimax_score = minimax(grid, DEPTH, True)
             row = get_next_open_row(grid, col)
             drop_piece(grid, row, col, AI)
 
@@ -224,3 +267,4 @@ def play_game():
 
 # Start the game
 play_game()
+
