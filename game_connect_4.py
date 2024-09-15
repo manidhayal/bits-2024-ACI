@@ -65,10 +65,10 @@ def is_draw(grid):
     return all(grid[0][c] != EMPTY for c in range(COLS))
 
 # Evaluate the score of a window of 4 cells
-def evaluate_window(window, piece):
+def evaluate_window(window, piece, opponent):
     score = 0
-    opponent = PLAYER if piece == AI else AI
 
+    # Increase score based on number of pieces in given window
     if window.count(piece) == 4:
         score += 100
     elif window.count(piece) == 3 and window.count(EMPTY) == 1:
@@ -76,6 +76,7 @@ def evaluate_window(window, piece):
     elif window.count(piece) == 2 and window.count(EMPTY) == 2:
         score += 2
 
+    # penalise to block apponent
     if window.count(opponent) == 3 and window.count(EMPTY) == 1:
         score -= 4
 
@@ -84,6 +85,7 @@ def evaluate_window(window, piece):
 # Score the grid based on the current board state
 def score_position(grid, piece):
     score = 0
+    opponent = PLAYER if piece == AI else AI  # Determine opponent's piece
 
     # Score center column for control
     center_array = [grid[r][COLS // 2] for r in range(ROWS)]
@@ -95,26 +97,26 @@ def score_position(grid, piece):
         row_array = [grid[r][c] for c in range(COLS)]
         for c in range(COLS - 3):
             window = row_array[c:c + 4]
-            score += evaluate_window(window, piece)
+            score += evaluate_window(window, piece, opponent)
 
     # Score vertical positions
     for c in range(COLS):
         col_array = [grid[r][c] for r in range(ROWS)]
         for r in range(ROWS - 3):
             window = col_array[r:r + 4]
-            score += evaluate_window(window, piece)
+            score += evaluate_window(window, piece, opponent)
 
     # Score positively sloped diagonals
     for r in range(ROWS - 3):
         for c in range(COLS - 3):
             window = [grid[r + i][c + i] for i in range(4)]
-            score += evaluate_window(window, piece)
+            score += evaluate_window(window, piece, opponent)
 
     # Score negatively sloped diagonals
     for r in range(ROWS - 3):
         for c in range(COLS - 3):
             window = [grid[r + 3 - i][c + i] for i in range(4)]
-            score += evaluate_window(window, piece)
+            score += evaluate_window(window, piece, opponent)
 
     return score
 
